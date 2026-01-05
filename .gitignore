@@ -7,3 +7,7 @@ backend/.env
 backend/node_modules
 *.log
 .DS_Store
+node_modules/
+node_modules/.vite/
+.vite/
+dist/
