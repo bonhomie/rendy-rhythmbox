@@ -1,0 +1,11 @@
+/* Font Face Declaration - Vite will process the relative paths */
+@font-face {
+  font-family: 'PP Neue Montreal Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./assets/fonts/Neue-Montreal-Mono/Medium/PPNeueMontrealMono-Medium.woff2') format('woff2'),
+       url('./assets/fonts/Neue-Montreal-Mono/Medium/PPNeueMontrealMono-Medium.woff') format('woff'),
+       url('./assets/fonts/Neue-Montreal-Mono/Medium/PPNeueMontrealMono-Medium.ttf') format('truetype');
+}
+
