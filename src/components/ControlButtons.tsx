@@ -1,15 +1,72 @@
+import { useState, useRef, useEffect } from 'react';
 import svgPaths from "../imports/svg-d0xiv0f7ge";
+import { SaveModal } from './SaveModal';
+import { LoadDropdown } from './LoadDropdown';
+import type { AppState } from '../utils/saveLoad';
+
+const DEBUG = false;
 
 type ControlButtonsProps = {
   isPlaying: boolean;
   onTogglePlay: () => void;
   onRandom: () => void;
   onClear: () => void;
-  onSave?: () => void;
-  onLoad?: () => void;
+  onSave?: (title: string, djName: string) => Promise<void>;
+  onLoad?: (state: AppState) => void;
+  currentState: AppState;
 };
 
-export function ControlButtons({ isPlaying, onTogglePlay, onRandom, onClear, onSave, onLoad }: ControlButtonsProps) {
+export function ControlButtons({ isPlaying, onTogglePlay, onRandom, onClear, onSave, onLoad, currentState }: ControlButtonsProps) {
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isLoadDropdownOpen, setIsLoadDropdownOpen] = useState(false);
+  const loadButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Debug: Log state changes
+  useEffect(() => {
+    if (DEBUG) {
+      console.log('[ControlButtons] isSaveModalOpen changed:', isSaveModalOpen);
+    }
+  }, [isSaveModalOpen]);
+
+  useEffect(() => {
+    if (DEBUG) {
+      console.log('[ControlButtons] isLoadDropdownOpen changed:', isLoadDropdownOpen);
+    }
+  }, [isLoadDropdownOpen]);
+
+  const handleSaveClick = () => {
+    if (DEBUG) {
+      console.log('[ControlButtons] Save clicked');
+    }
+    setIsSaveModalOpen(true);
+    if (DEBUG) {
+      console.log('[ControlButtons] setSaveModalOpen(true) called');
+    }
+  };
+
+  const handleLoadClick = () => {
+    if (DEBUG) {
+      console.log('[ControlButtons] Load clicked');
+    }
+    setIsLoadDropdownOpen(true);
+    if (DEBUG) {
+      console.log('[ControlButtons] setLoadDropdownOpen(true) called');
+    }
+  };
+
+  const handleSave = async (title: string, djName: string) => {
+    if (onSave) {
+      await onSave(title, djName);
+    }
+    setIsSaveModalOpen(false);
+  };
+
+  const handleLoad = (state: AppState) => {
+    if (onLoad) {
+      onLoad(state);
+    }
+    setIsLoadDropdownOpen(false);
+  };
   return (
     <div className="content-stretch flex gap-[8px] h-[48px] items-center">
       {/* Play Button */}
@@ -57,36 +114,58 @@ export function ControlButtons({ isPlaying, onTogglePlay, onRandom, onClear, onS
       </button>
 
       {/* Save Button */}
-      <button 
-        onClick={onSave}
-        className="bg-[rgba(255,255,255,0.12)] content-stretch flex gap-[8px] h-full items-center justify-center pl-[12px] pr-[16px] py-[7px] relative rounded-[6px] shrink-0 w-[154px] hover:bg-[rgba(255,255,255,0.16)] transition-colors cursor-pointer"
-      >
-        <div aria-hidden="true" className="absolute border border-[rgba(255,255,255,0.2)] border-solid inset-0 pointer-events-none rounded-[6px]" />
-        <svg className="block shrink-0 size-[18px]" fill="none" preserveAspectRatio="none" viewBox="0 0 18 18">
-          <path d={svgPaths.p23748800} fill="white" />
-        </svg>
-        <div className="flex flex-col font-['PP Neue Montreal Mono',sans-serif] font-medium justify-end leading-[0] not-italic relative shrink-0 text-[0px] text-nowrap text-white tracking-[0.24px] uppercase">
-          <p className="leading-[1.25] text-[12px]">
-            SAVE<span className="font-['PP Neue Montreal Mono',sans-serif] font-medium not-italic tracking-[-3.84px] uppercase">...</span>
-          </p>
+      <div className="relative">
+        <button 
+          onClick={() => setIsSaveModalOpen(true)}
+          className="bg-[rgba(255,255,255,0.12)] content-stretch flex gap-[8px] h-full items-center justify-center pl-[12px] pr-[16px] py-[7px] relative rounded-[6px] shrink-0 w-[154px] hover:bg-[rgba(255,255,255,0.16)] transition-colors cursor-pointer"
+        >
+          <div aria-hidden="true" className="absolute border border-[rgba(255,255,255,0.2)] border-solid inset-0 pointer-events-none rounded-[6px]" />
+          <svg className="block shrink-0 size-[18px]" fill="none" preserveAspectRatio="none" viewBox="0 0 18 18">
+            <path d={svgPaths.p23748800} fill="white" />
+          </svg>
+          <div className="flex flex-col font-['PP Neue Montreal Mono',sans-serif] font-medium justify-end leading-[0] not-italic relative shrink-0 text-[0px] text-nowrap text-white tracking-[0.24px] uppercase">
+            <p className="leading-[1.25] text-[12px]">
+              SAVE<span className="font-['PP Neue Montreal Mono',sans-serif] font-medium not-italic tracking-[-3.84px] uppercase">...</span>
+            </p>
+          </div>
+        </button>
+        {/* Debug indicator */}
+        <div className="absolute -top-6 left-0 text-[10px] text-red-500 font-mono whitespace-nowrap pointer-events-none">
+          saveOpen: {String(isSaveModalOpen)}
         </div>
-      </button>
+      </div>
 
-      {/* Load Button */}
-      <button 
-        onClick={onLoad}
-        className="bg-[rgba(255,255,255,0.12)] content-stretch flex gap-[8px] h-full items-center justify-center px-[16px] py-[7px] relative rounded-[6px] shrink-0 hover:bg-[rgba(255,255,255,0.16)] transition-colors cursor-pointer"
-      >
-        <div aria-hidden="true" className="absolute border border-[rgba(255,255,255,0.2)] border-solid inset-0 pointer-events-none rounded-[6px]" />
-        <svg className="block shrink-0 size-[18px]" fill="none" preserveAspectRatio="none" viewBox="0 0 18 18">
-          <path clipRule="evenodd" d={svgPaths.p9d57a70} fill="white" fillRule="evenodd" />
-        </svg>
-        <div className="flex flex-col font-['PP Neue Montreal Mono',sans-serif] font-medium justify-end leading-[0] not-italic relative shrink-0 text-[0px] text-nowrap text-white tracking-[0.24px] uppercase">
-          <p className="leading-[1.25] text-[12px]">
-            LOAD<span className="font-['PP Neue Montreal Mono',sans-serif] font-medium not-italic tracking-[-3.84px] uppercase">...</span>
-          </p>
-        </div>
-      </button>
+      {/* Load Button with Dropdown */}
+      <LoadDropdown
+        isOpen={isLoadDropdownOpen}
+        onOpenChange={setIsLoadDropdownOpen}
+        onLoad={handleLoad}
+        trigger={
+          <button 
+            ref={loadButtonRef}
+            onClick={handleLoadClick}
+            className="bg-[rgba(255,255,255,0.12)] content-stretch flex gap-[8px] h-full items-center justify-center px-[16px] py-[7px] relative rounded-[6px] shrink-0 hover:bg-[rgba(255,255,255,0.16)] transition-colors cursor-pointer"
+          >
+            <div aria-hidden="true" className="absolute border border-[rgba(255,255,255,0.2)] border-solid inset-0 pointer-events-none rounded-[6px]" />
+            <svg className="block shrink-0 size-[18px]" fill="none" preserveAspectRatio="none" viewBox="0 0 18 18">
+              <path clipRule="evenodd" d={svgPaths.p9d57a70} fill="white" fillRule="evenodd" />
+            </svg>
+            <div className="flex flex-col font-['PP Neue Montreal Mono',sans-serif] font-medium justify-end leading-[0] not-italic relative shrink-0 text-[0px] text-nowrap text-white tracking-[0.24px] uppercase">
+              <p className="leading-[1.25] text-[12px]">
+                LOAD<span className="font-['PP Neue Montreal Mono',sans-serif] font-medium not-italic tracking-[-3.84px] uppercase">...</span>
+              </p>
+            </div>
+          </button>
+        }
+      />
+
+      {/* Save Modal */}
+      <SaveModal
+        isOpen={isSaveModalOpen}
+        onClose={() => setIsSaveModalOpen(false)}
+        onSave={handleSave}
+        state={currentState}
+      />
     </div>
   );
 }

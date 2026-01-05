@@ -13,6 +13,10 @@ import { LEDInterface } from './components/LEDInterface';
 import { createAudioEngine } from './utils/audioEngine';
 import { getFrequency, detectChord } from './utils/chordDetection';
 import type { ArpPattern, ArpRate } from './components/ArpeggiatorSelector';
+import { parseHash, setHash } from './utils/urlHash';
+import { loadTrack } from './utils/api';
+import type { AppState } from './utils/saveLoad';
+import { deserializeState, normalizeAndValidateState } from './utils/saveLoad';
 
 export type TrackData = {
   id: number;
@@ -269,6 +273,57 @@ export default function App() {
       }));
     }
   }, []);
+
+  // Define handleLoad before it's used in useEffect
+  const handleLoad = useCallback((loadedStateOrJson: AppState | string) => {
+    // Deserialize if needed (handles both AppState objects and JSON strings)
+    const deserializedState = deserializeState(loadedStateOrJson);
+    
+    // Normalize and validate the state (handles both phrase formats and fills defaults)
+    const { state: normalizedState, valid, error } = normalizeAndValidateState(deserializedState);
+    
+    if (!valid) {
+      console.error(`Invalid state loaded: ${error || 'unknown error'}`);
+      return;
+    }
+    
+    // Restore all state from normalized state (already deep cloned in normalization)
+    setPhrases(normalizedState.phrases);
+    setTempo(normalizedState.tempo);
+    setSwing(normalizedState.swing);
+    setReverb(normalizedState.reverb);
+    setDelay(normalizedState.delay);
+    setDelayAmount(normalizedState.delayAmount);
+    setFilter(normalizedState.filter);
+    setVolume(normalizedState.volume);
+    setActivePhrase(normalizedState.activePhrase);
+    
+    // Set tracks to the active phrase's tracks (deep cloned)
+    const activePhraseTracks = normalizedState.phrases[normalizedState.activePhrase];
+    if (activePhraseTracks && activePhraseTracks.length > 0) {
+      setTracks(JSON.parse(JSON.stringify(activePhraseTracks)));
+    } else {
+      // If the active phrase is empty, keep current tracks or initialize
+      console.warn('Active phrase is empty, keeping current tracks');
+    }
+  }, []);
+
+  // Load track from URL hash on mount
+  useEffect(() => {
+    const slug = parseHash();
+    if (slug) {
+      loadTrack(slug)
+        .then(trackWithState => {
+          handleLoad(trackWithState.state);
+          setHash(slug); // Ensure hash is set
+        })
+        .catch(err => {
+          console.warn('Failed to load track from URL:', err);
+          // Clear invalid hash
+          window.location.hash = '';
+        });
+    }
+  }, [handleLoad]); // Only run on mount
 
   // Keep queuedPhraseRef in sync
   useEffect(() => {
@@ -1009,17 +1064,30 @@ export default function App() {
     }
   };
 
-  const handleSave = () => {
-    // TODO: Implement save functionality
-    // This will save the current state of all phrases to localStorage or a file
-    console.log('Save clicked - functionality to be implemented');
+  const handleSave = async (title: string, djName: string) => {
+    // Save is handled by SaveModal component
+    // This function is called after successful save
+    console.log('Track saved:', title, djName);
   };
 
-  const handleLoad = () => {
-    // TODO: Implement load functionality
-    // This will load saved phrases from localStorage or a file
-    console.log('Load clicked - functionality to be implemented');
-  };
+  // Get current state for saving (ensures active phrase includes current tracks)
+  const getCurrentStateForSave = useCallback((): AppState => {
+    // Update the active phrase with current tracks before serializing
+    const updatedPhrases = { ...phrases };
+    updatedPhrases[activePhrase] = JSON.parse(JSON.stringify(tracks));
+    
+    return {
+      phrases: updatedPhrases,
+      tempo,
+      swing,
+      reverb,
+      delay,
+      delayAmount,
+      filter,
+      volume,
+      activePhrase,
+    };
+  }, [phrases, tracks, activePhrase, tempo, swing, reverb, delay, delayAmount, filter, volume]);
 
   const handleEnterRecordMode = (trackId: number) => {
     setRecordingTrackId(trackId);
@@ -1259,6 +1327,7 @@ export default function App() {
                     onRandom={handleRandom}
                     onSave={handleSave}
                     onLoad={handleLoad}
+                    currentState={getCurrentStateForSave()}
                   />
                 </div>
                 
