@@ -6,7 +6,6 @@ import tracksRouter from './routes/tracks.js';
 dotenv.config();
 
 const app = express();
-console.log("SERVER.JS LOADED OK", { commit: process.env.RENDER_GIT_COMMIT || null });
 const PORT = process.env.PORT || 3001;
 const allowedOrigins = [
   process.env.FRONTEND_URL,       // if set
@@ -14,6 +13,7 @@ const allowedOrigins = [
   'http://localhost:5173',
 ].filter(Boolean);
 
+// Middleware
 app.use(cors({
   origin: (origin, cb) => {
     // allow curl/postman/no-origin requests
@@ -21,12 +21,6 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) return cb(null, true);
     return cb(new Error(`CORS blocked for origin: ${origin}`));
   },
-  credentials: true,
-}));
-
-// Middleware
-app.use(cors({
-  origin: FRONTEND_URL,
   credentials: true,
 }));
 app.use(express.json());
@@ -67,8 +61,9 @@ app.use((req, res) => {
 
 // Start server
 app.listen(PORT, () => {
+  console.log('SERVER.JS LOADED OK');
   console.log(`Server running on port ${PORT}`);
-  console.log(`Frontend URL: ${FRONTEND_URL}`);
+  console.log(`Frontend URL: ${process.env.FRONTEND_URL || 'not set'}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
