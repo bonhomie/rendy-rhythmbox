@@ -24,6 +24,7 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/tracks', tracksRouter);
+app.use("/tracks", tracksRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -31,6 +32,14 @@ app.use((err, req, res, next) => {
   res.status(500).json({
     message: 'Internal server error',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
+});
+
+app.get("/__version", (req, res) => {
+  res.json({
+    commit: process.env.RENDER_GIT_COMMIT || null,
+    service: process.env.RENDER_SERVICE_NAME || null,
+    hasTracksMount: true,
   });
 });
 
