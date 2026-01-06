@@ -6,6 +6,7 @@ import tracksRouter from './routes/tracks.js';
 dotenv.config();
 
 const app = express();
+console.log("SERVER.JS LOADED OK", { commit: process.env.RENDER_GIT_COMMIT || null });
 const PORT = process.env.PORT || 3001;
 const allowedOrigins = [
   process.env.FRONTEND_URL,       // if set
