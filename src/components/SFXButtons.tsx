@@ -3,17 +3,17 @@ import svgPaths from "../imports/svg-xxz527id14";
 interface SFXButtonsProps {
   onCrashClick: () => void;
   onRiserClick: () => void;
-  onHornClick?: () => void;
+  onPulseClick?: () => void;
 }
 
-export function SFXButtons({ onCrashClick, onRiserClick, onHornClick }: SFXButtonsProps) {
+export function SFXButtons({ onCrashClick, onRiserClick, onPulseClick }: SFXButtonsProps) {
   const handleButtonClick = (label: string) => {
     if (label === 'CRASH') {
       onCrashClick();
     } else if (label === 'RISER') {
       onRiserClick();
-    } else if (label === 'HORN' && onHornClick) {
-      onHornClick();
+    } else if (label === 'PULSE' && onPulseClick) {
+      onPulseClick();
     }
   };
 
@@ -55,9 +55,9 @@ export function SFXButtons({ onCrashClick, onRiserClick, onHornClick }: SFXButto
         </div>
       </button>
 
-      {/* HORN button */}
+      {/* PULSE button */}
       <button
-        onClick={() => handleButtonClick('HORN')}
+        onClick={() => handleButtonClick('PULSE')}
         className="basis-0 bg-[rgba(255,255,255,0.12)] grow min-h-px min-w-px relative rounded-[6px] shrink-0 hover:bg-[rgba(255,255,255,0.16)] transition-colors cursor-pointer"
       >
         <div aria-hidden="true" className="absolute border border-[rgba(255,255,255,0.2)] border-solid inset-0 pointer-events-none rounded-[6px]" />
@@ -67,7 +67,7 @@ export function SFXButtons({ onCrashClick, onRiserClick, onHornClick }: SFXButto
               <path d={svgPaths.p17e22780} fill="white" />
             </svg>
             <div className="flex flex-col font-['PP Neue Montreal Mono',sans-serif] font-medium justify-end leading-[0] not-italic relative shrink-0 text-[10px] text-[rgba(255,255,255,0.66)] text-nowrap text-right tracking-[0.2px] uppercase">
-              <p className="leading-[1.25]">HORN</p>
+              <p className="leading-[1.25]">Pulse</p>
             </div>
           </div>
         </div>

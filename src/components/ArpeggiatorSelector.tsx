@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import svgPaths from "../imports/svg-kh862mffl2";
 
 type ArpPattern = 'off' | 'up' | 'down' | 'updown' | 'downup' | 'random';
@@ -54,11 +55,63 @@ export function ArpeggiatorSelector({
   onLengthChange, 
   isOpen 
 }: ArpeggiatorSelectorProps) {
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [positionAbove, setPositionAbove] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || !dropdownRef.current) return;
+
+    const checkPosition = () => {
+      const dropdown = dropdownRef.current;
+      if (!dropdown) return;
+
+      // Get the button container (parent with relative positioning)
+      const buttonContainer = dropdown.parentElement;
+      if (!buttonContainer) return;
+
+      const buttonRect = buttonContainer.getBoundingClientRect();
+      
+      // Get actual dropdown height after it's rendered
+      const dropdownHeight = dropdown.offsetHeight || dropdown.getBoundingClientRect().height;
+      
+      // Estimate if not yet rendered (fallback)
+      const estimatedHeight = pattern !== 'off' ? 308 : 144;
+      const dropdownActualHeight = dropdownHeight > 0 ? dropdownHeight : estimatedHeight;
+      
+      const spaceBelow = window.innerHeight - buttonRect.bottom;
+      const spaceAbove = buttonRect.top;
+
+      // If not enough space below but enough space above, position above
+      // Add some buffer (16px) to ensure it doesn't touch edges
+      if (spaceBelow < dropdownActualHeight + 16 && spaceAbove > dropdownActualHeight + 16) {
+        setPositionAbove(true);
+      } else {
+        setPositionAbove(false);
+      }
+    };
+
+    // Check position after a brief delay to ensure DOM is updated
+    const timeoutId = setTimeout(checkPosition, 0);
+    
+    // Also check on scroll/resize
+    window.addEventListener('scroll', checkPosition, true);
+    window.addEventListener('resize', checkPosition);
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('scroll', checkPosition, true);
+      window.removeEventListener('resize', checkPosition);
+    };
+  }, [isOpen, pattern]);
+
   if (!isOpen) return null;
 
   return (
     <div 
-      className="absolute top-full left-0 mt-1 z-50 w-[140px] dropdown-container"
+      ref={dropdownRef}
+      className={`absolute left-0 z-50 w-[140px] dropdown-container ${
+        positionAbove ? 'bottom-full mb-1' : 'top-full mt-1'
+      }`}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="backdrop-blur-[6px] bg-[rgba(39,39,39,0.96)] rounded-[2px] border border-[rgba(255,255,255,0.2)]">

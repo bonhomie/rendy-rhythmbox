@@ -53,7 +53,7 @@ async function initApp() {
   const { createRoot } = await import("react-dom/client");
   const App = (await import("./App.tsx")).default;
   await import("./index.css");
-  
+
   createRoot(document.getElementById("root")!).render(<App />);
 }
 

@@ -494,6 +494,14 @@
     bottom: 16px;
   }
 
+  .bottom-full {
+    bottom: 100%;
+  }
+
+  .mb-1 {
+    margin-bottom: calc(var(--spacing) * 1);
+  }
+
   .left-0 {
     left: calc(var(--spacing) * 0);
   }
@@ -1652,6 +1660,11 @@
 
 html {
   font-size: var(--font-size);
+  background-color: #0D0D0D;
+}
+
+body {
+  background-color: #0D0D0D;
 }
 
 @property --tw-translate-x {
@@ -2013,5 +2026,102 @@ html {
   }
   50% {
     opacity: 0.7;
+  }
+}
+
+/* Rendy head bop animation - quicker down, easing up */
+@keyframes rendyBop {
+  0% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(2px); /* Quick down */
+  }
+  100% {
+    transform: translateY(0); /* Easing up */
+  }
+}
+
+/* Ensure right sidebar is hidden by default on small screens */
+.hidden {
+  display: none;
+}
+
+/* Custom breakpoint for screens >= 1601px */
+@media (min-width: 1601px) {
+  .large-screen\:max-w-none {
+    max-width: none;
+  }
+  
+  .large-screen\:flex {
+    display: flex !important;
+  }
+  
+  .large-screen\:hidden {
+    display: none !important;
+  }
+  
+  .large-screen\:flex-col {
+    flex-direction: column;
+  }
+  
+  .large-screen\:w-auto {
+    width: auto;
+  }
+  
+  .large-screen\:flex-1 {
+    flex: 1;
+  }
+  
+  .large-screen\:w-\[360px\] {
+    width: 360px;
+  }
+  
+  .large-screen\:shrink-0 {
+    flex-shrink: 0;
+  }
+  
+  .large-screen\:gap-6 {
+    gap: 1.5rem;
+  }
+  
+  .large-screen\:items-start {
+    align-items: flex-start;
+  }
+  
+  .large-screen\:gap-8 {
+    gap: 2rem;
+  }
+  
+  .large-screen\:gap-\[64px\] {
+    gap: 64px;
+  }
+  
+  .large-screen\:max-w-\[1600px\] {
+    max-width: 1600px;
+  }
+  
+  .large-screen\:h-\[32px\] {
+    height: 32px;
+  }
+  
+  .large-screen\:w-\[150px\] {
+    width: 150px;
+  }
+  
+  .large-screen\:w-full {
+    width: 100%;
+  }
+  
+  .large-screen\:pt-\[48px\] {
+    padding-top: 48px;
+  }
+  
+  .large-screen\:flex-wrap {
+    flex-wrap: wrap;
+  }
+  
+  .large-screen\:h-auto {
+    height: auto !important;
   }
 }

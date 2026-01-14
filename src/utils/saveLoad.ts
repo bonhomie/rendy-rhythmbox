@@ -164,7 +164,8 @@ export function normalizeAndValidateState(state: AppState): { state: AppState; v
       delay: typeof state.delay === 'number' ? Math.max(0, Math.min(2000, state.delay)) : 0, // Delay is in milliseconds, max 2000ms (2 seconds)
       delayAmount: typeof state.delayAmount === 'number' ? Math.max(0, Math.min(100, state.delayAmount)) : 60,
       filter: typeof state.filter === 'number' ? Math.max(-1, Math.min(1, state.filter)) : 0,
-      volume: typeof state.volume === 'number' ? Math.max(0, Math.min(100, state.volume)) : 80,
+      // Clamp volume to safe max of 80 (maps to masterGain=0.32) to prevent clipping
+      volume: typeof state.volume === 'number' ? Math.max(0, Math.min(80, state.volume)) : 80,
       activePhrase,
     };
 

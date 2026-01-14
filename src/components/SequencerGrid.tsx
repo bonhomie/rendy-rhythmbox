@@ -37,32 +37,32 @@ const colorMap = {
   pink: {
     gradient: "radial-gradient(circle at center, rgba(247,155,254,1) 0%, rgba(231,116,238,1) 25%, rgba(214,78,223,1) 50%, rgba(198,39,207,1) 75%, rgba(189,19,199,1) 87.5%, rgba(185,10,195,1) 93.75%, rgba(181,0,191,1) 100%)",
     shadow: "0px 0px 8px 1px rgba(242,57,255,0.5)",
-    border: "white"
+    border: "rgba(255,200,255,0.4)"
   },
   yellow: {
     gradient: "radial-gradient(circle at center, rgba(254,247,207,1) 0%, rgba(239,227,163,1) 25%, rgba(223,207,119,1) 50%, rgba(208,187,76,1) 75%, rgba(200,177,54,1) 87.5%, rgba(192,167,32,1) 100%)",
     shadow: "0px 0px 8px 1px rgba(243,205,1,0.66)",
-    border: "white"
+    border: "rgba(255,250,200,0.4)"
   },
   green: {
     gradient: "radial-gradient(circle at center, rgba(196,255,150,1) 0%, rgba(172,248,112,1) 50%, rgba(148,241,74,1) 100%)",
     shadow: "0px 0px 8px 1px #57b60c",
-    border: "white"
+    border: "rgba(200,255,180,0.5)"
   },
   orange: {
     gradient: "radial-gradient(circle at center, rgba(255,200,150,1) 0%, rgba(255,170,100,1) 50%, rgba(255,140,50,1) 100%)",
     shadow: "0px 0px 8px 1px #ff8c00",
-    border: "white"
+    border: "rgba(255,220,180,0.5)"
   },
   cyan: {
     gradient: "radial-gradient(circle at center, rgba(172,255,209,1) 0%, rgba(129,241,196,1) 25%, rgba(86,228,182,1) 50%, rgba(43,214,169,1) 75%, rgba(22,207,162,1) 87.5%, rgba(11,203,158,1) 93.75%, rgba(0,200,155,1) 100%)",
     shadow: "0px 0px 8px 1px #006d4c",
-    border: "white"
+    border: "rgba(200,255,230,0.4)"
   },
   blue: {
     gradient: "radial-gradient(circle at center, rgba(129,211,255,1) 0%, rgba(82,188,255,1) 50%, rgba(58,177,255,1) 75%, rgba(34,165,255,1) 100%)",
     shadow: "0px 0px 8px 1px #005e9e",
-    border: "white"
+    border: "rgba(200,230,255,0.4)"
   },
   coral: {
     gradient: "radial-gradient(circle at center, rgba(255,239,238,1) 0%, rgba(255,203,199,1) 50%, rgba(254,167,159,1) 100%)",
@@ -178,26 +178,21 @@ function StepCell({
   return (
     <button
       onClick={onClick}
-      className={`relative rounded-[3.5px] w-14 h-14 transition-all hover:from-[rgba(255,255,255,0.14)] hover:to-[rgba(153,153,153,0.16)] active:scale-95 ${
+      className={`relative w-14 h-14 transition-all active:scale-95 ${
         isPlaying ? 'ring-1 ring-white ring-opacity-30' : ''
       }`}
       style={{
+        borderRadius: '3.5px',
         transform: isPlaying ? 'scale(1.05)' : 'scale(1)',
         background: isStructuralBeat 
-          ? 'linear-gradient(to bottom, rgba(255,255,255,0.094), rgba(153,153,153,0.12))'
-          : 'linear-gradient(to bottom, rgba(255,255,255,0.16), rgba(153,153,153,0.18))'
+          ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(153, 153, 153, 0.20) 100%)'
+          : 'linear-gradient(rgba(255, 255, 255, 0.07) 0%, rgba(153, 153, 153, 0.16) 100%)',
+        borderTop: `0.219px solid ${isStructuralBeat ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.08)'}`,
+        borderRight: `0.438px solid ${isStructuralBeat ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.08)'}`,
+        borderBottom: `1.75px solid ${isStructuralBeat ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.08)'}`,
+        borderLeft: `0.438px solid ${isStructuralBeat ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.08)'}`,
       }}
-    >
-      <div 
-        className="absolute inset-0 pointer-events-none rounded-[3.5px]" 
-        style={{
-          border: isStructuralBeat ? '0.219px solid white' : '0.219px solid rgba(255,255,255,0.3)',
-          boxShadow: isStructuralBeat 
-            ? '0px 0.438px 1.75px rgba(255,255,255,0.1)' 
-            : '0px 0.438px 1.75px rgba(255,255,255,0.2)'
-        }}
-      />
-    </button>
+    />
   );
 }
 
@@ -267,7 +262,7 @@ export function SequencerGrid({ tracks, currentStep, onToggleStep, onToggleMute,
             )}
             
             {/* Track info */}
-            <div className="flex items-center gap-3 w-[200px]">
+            <div className="flex items-center gap-3 w-[200px] large-screen:w-[150px] shrink-0">
               <div className="flex flex-col items-end gap-0.5 flex-1">
                 <div className="font-['PP Neue Montreal Mono',sans-serif] font-medium text-white text-[12px] uppercase tracking-[0.24px] leading-[1.25] flex items-center gap-2">
                   {track.name}
@@ -287,6 +282,10 @@ export function SequencerGrid({ tracks, currentStep, onToggleStep, onToggleMute,
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
+                      // For melody tracks, close arpeggiator if open
+                      if (isTrackMelody && openArpTrackId === track.id) {
+                        setOpenArpTrackId(null);
+                      }
                       setOpenSelectorTrackId(openSelectorTrackId === track.id ? null : track.id);
                     }}
                     className="w-5 h-5 bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.16)] flex items-center justify-center hover:bg-[rgba(255,255,255,0.12)] transition-colors cursor-pointer"
@@ -324,6 +323,10 @@ export function SequencerGrid({ tracks, currentStep, onToggleStep, onToggleMute,
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
+                        // Close sound selector if open
+                        if (openSelectorTrackId === track.id) {
+                          setOpenSelectorTrackId(null);
+                        }
                         setOpenArpTrackId(openArpTrackId === track.id ? null : track.id);
                       }}
                       className="w-5 h-5 bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.16)] flex items-center justify-center hover:bg-[rgba(255,255,255,0.12)] transition-colors cursor-pointer"

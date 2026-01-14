@@ -56,7 +56,7 @@ export function Knob({ value, onChange, label, size = 40 }: KnobProps) {
   };
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center gap-2" style={{ overflow: 'visible' }}>
       {/* Label */}
       <div className="font-['PP Neue Montreal Mono',sans-serif] font-medium text-[12px] text-[rgba(255,255,255,0.66)] tracking-[0.24px] uppercase leading-[1.25]">
         {label}
@@ -67,9 +67,15 @@ export function Knob({ value, onChange, label, size = 40 }: KnobProps) {
         onMouseDown={handleMouseDown}
         onDoubleClick={handleDoubleClick}
         className="relative cursor-pointer select-none"
-        style={{ width: size, height: size }}
+        style={{ 
+          width: size, 
+          height: size,
+          overflow: 'visible',
+          padding: '2px',
+          margin: '-2px'
+        }}
       >
-        <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 40 40">
+        <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="-2 -2 44 44" style={{ overflow: 'visible' }}>
           <g>
             <mask fill="white" id="path-1-inside-1_90_435">
               <path d={svgPaths.p38d3e400} />

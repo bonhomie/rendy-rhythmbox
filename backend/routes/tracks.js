@@ -72,44 +72,9 @@ router.post('/', async (req, res) => {
 });
 
 /**
- * GET /api/tracks/:slug
- * Get a track by slug
- */
-router.get('/:slug', async (req, res) => {
-  try {
-    const { slug } = req.params;
-
-    const result = await pool.query(
-      'SELECT slug, title, dj_name, state, created_at FROM tracks WHERE slug = $1',
-      [slug]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        message: 'Track not found'
-      });
-    }
-
-    const track = result.rows[0];
-    res.json({
-      slug: track.slug,
-      title: track.title,
-      dj_name: track.dj_name,
-      state: track.state, // Already parsed from JSONB
-      created_at: track.created_at
-    });
-  } catch (error) {
-    console.error('Error fetching track:', error);
-    res.status(500).json({
-      message: 'Internal server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
-
-/**
  * GET /api/tracks
  * List all tracks (with pagination)
+ * NOTE: This route must come BEFORE /:slug to avoid matching conflicts
  */
 router.get('/', async (req, res) => {
   try {
@@ -137,6 +102,43 @@ router.get('/', async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Error listing tracks:', error);
+    res.status(500).json({
+      message: 'Internal server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+/**
+ * GET /api/tracks/:slug
+ * Get a track by slug
+ * NOTE: This route must come AFTER / to avoid matching conflicts
+ */
+router.get('/:slug', async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const result = await pool.query(
+      'SELECT slug, title, dj_name, state, created_at FROM tracks WHERE slug = $1',
+      [slug]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        message: 'Track not found'
+      });
+    }
+
+    const track = result.rows[0];
+    res.json({
+      slug: track.slug,
+      title: track.title,
+      dj_name: track.dj_name,
+      state: track.state, // Already parsed from JSONB
+      created_at: track.created_at
+    });
+  } catch (error) {
+    console.error('Error fetching track:', error);
     res.status(500).json({
       message: 'Internal server error',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined

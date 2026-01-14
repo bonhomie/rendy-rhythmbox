@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useId } from 'react';
 import svgPaths from "../imports/svg-fxmtmshiph";
 
 interface LEDInterfaceProps {
@@ -25,6 +25,9 @@ export function LEDInterface({
   const [isDraggingVolume, setIsDraggingVolume] = useState(false);
   const [isDraggingTempo, setIsDraggingTempo] = useState(false);
   const [isDraggingSwing, setIsDraggingSwing] = useState(false);
+  
+  // Generate unique ID for clipPath to avoid conflicts when multiple instances exist
+  const volumeClipId = useId();
   
   const volumeRef = useRef<HTMLDivElement>(null);
   const tempoStartY = useRef(0);
@@ -197,7 +200,7 @@ export function LEDInterface({
 
   return (
     <div 
-      className="relative rounded-[3px] h-[44px] w-[340px]" 
+      className="relative rounded-[3px] h-[44px] w-[340px] large-screen:w-full" 
       style={{ 
         backgroundImage: "linear-gradient(26.1779deg, rgb(228, 232, 237) 42.645%, rgb(226, 234, 237) 82.759%)" 
       }}
@@ -217,6 +220,12 @@ export function LEDInterface({
             >
               <div className="basis-0 grow h-[18px] min-h-px min-w-px relative shrink-0">
                 <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 56 18">
+                  <defs>
+                    {/* Active triangle (clipped by volume) - using unique ID */}
+                    <clipPath id={volumeClipId}>
+                      <rect x="0" y="0" width={56 * (volume / 100)} height="18" />
+                    </clipPath>
+                  </defs>
                   <g>
                     {/* Background triangle */}
                     <path 
@@ -225,14 +234,11 @@ export function LEDInterface({
                       fillOpacity="0.16"
                     />
                     {/* Active triangle (clipped by volume) */}
-                    <clipPath id="volume-clip">
-                      <rect x="0" y="0" width={56 * (volume / 100)} height="18" />
-                    </clipPath>
                     <path 
                       d={svgPaths.p2cc68880} 
                       fill="#0D0D0D" 
                       fillOpacity="0.72"
-                      clipPath="url(#volume-clip)"
+                      clipPath={`url(#${volumeClipId})`}
                     />
                   </g>
                 </svg>

@@ -26,9 +26,9 @@ export function Phrases({ activePhrase, queuedPhrase, onPhraseClick, duplicateSo
           }`}
           style={{
             ...(isActive ? {
-              backgroundImage: "url('data:image/svg+xml;utf8,<svg viewBox=\\'0 0 181.33 32\\' xmlns=\\'http://www.w3.org/2000/svg\\' preserveAspectRatio=\\'none\\'><rect x=\\'0\\' y=\\'0\\' height=\\'100%\\' width=\\'100%\\' fill=\\'url(%23grad)\\' opacity=\\'0.6000000238418579\\'/><defs><radialGradient id=\\'grad\\' gradientUnits=\\'userSpaceOnUse\\' cx=\\'0\\' cy=\\'0\\' r=\\'10\\' gradientTransform=\\'matrix(9.0667 8.5865e-8 -1.2435e-8 2.1494 90.667 16)\\'><stop stop-color=\\'rgba(170,119,253,1)\\' offset=\\'0\\'/><stop stop-color=\\'rgba(170,119,253,0)\\' offset=\\'1\\'/></radialGradient></defs></svg>'), linear-gradient(10.6937deg, rgb(138, 5, 255) 30.08%, rgb(72, 0, 140) 101.13%)"
-            } : {
-              backgroundImage: "linear-gradient(33.049deg, rgba(163, 163, 157, 0.12) 42.645%, rgba(160, 160, 160, 0.12) 82.759%)"
+            backgroundImage: "url('data:image/svg+xml;utf8,<svg viewBox=\\'0 0 181.33 32\\' xmlns=\\'http://www.w3.org/2000/svg\\' preserveAspectRatio=\\'none\\'><rect x=\\'0\\' y=\\'0\\' height=\\'100%\\' width=\\'100%\\' fill=\\'url(%23grad)\\' opacity=\\'0.6000000238418579\\'/><defs><radialGradient id=\\'grad\\' gradientUnits=\\'userSpaceOnUse\\' cx=\\'0\\' cy=\\'0\\' r=\\'10\\' gradientTransform=\\'matrix(9.0667 8.5865e-8 -1.2435e-8 2.1494 90.667 16)\\'><stop stop-color=\\'rgba(170,119,253,1)\\' offset=\\'0\\'/><stop stop-color=\\'rgba(170,119,253,0)\\' offset=\\'1\\'/></radialGradient></defs></svg>'), linear-gradient(10.6937deg, rgb(138, 5, 255) 30.08%, rgb(72, 0, 140) 101.13%)"
+          } : {
+            backgroundImage: "linear-gradient(33.049deg, rgba(163, 163, 157, 0.12) 42.645%, rgba(160, 160, 160, 0.12) 82.759%)"
             }),
             ...(isQueued ? {
               animation: 'pulse-glow 2s ease-in-out infinite'

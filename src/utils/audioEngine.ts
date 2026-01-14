@@ -90,7 +90,7 @@ export const createAudioEngine = () => {
   
   // Reduced master gain to prevent distortion
   masterGain.gain.value = 0.4;
-  dryGain.gain.value = 1;
+  dryGain.gain.value = 0.85; // Reduced from 1.0 for additional headroom
   reverbGain.gain.value = 0;
 
   const playKick = (time: number) => {
@@ -104,7 +104,7 @@ export const createAudioEngine = () => {
     filter.type = 'lowpass';
     filter.frequency.value = 200;
     
-    gain.gain.setValueAtTime(1, time);
+    gain.gain.setValueAtTime(0.8, time); // Reduced from 1.0 to prevent clipping
     gain.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
     
     osc.connect(filter);
@@ -145,7 +145,7 @@ export const createAudioEngine = () => {
     filter.frequency.value = 160;
     filter.Q.value = 0.3; // Very minimal resonance for dry sound
     
-    gain.gain.setValueAtTime(1.1, time);
+    gain.gain.setValueAtTime(0.9, time); // Reduced from 1.1 to prevent clipping
     gain.gain.exponentialRampToValueAtTime(0.01, time + 0.4);
     
     noiseOsc.connect(noiseGain);
@@ -191,7 +191,7 @@ export const createAudioEngine = () => {
     bassBoost.gain.value = 3; // Reduced from 4dB to 3dB
     
     // REDUCED GAIN to prevent distortion
-    gain.gain.setValueAtTime(1.0, time);
+    gain.gain.setValueAtTime(0.8, time); // Reduced from 1.0 to prevent clipping
     gain.gain.exponentialRampToValueAtTime(0.25, time + 0.05);
     gain.gain.exponentialRampToValueAtTime(0.01, time + 0.25);
     
@@ -243,8 +243,8 @@ export const createAudioEngine = () => {
     filter.frequency.value = 150;
     filter.Q.value = 1.2; // Slight resonance for character
     
-    // FURTHER REDUCED GAIN to 1.0
-    gain.gain.setValueAtTime(1.0, time);
+    // FURTHER REDUCED GAIN to prevent clipping
+    gain.gain.setValueAtTime(0.8, time); // Reduced from 1.0 to prevent clipping
     gain.gain.exponentialRampToValueAtTime(0.01, time + 0.6);
     
     noiseOsc.connect(noiseGain);
@@ -292,7 +292,7 @@ export const createAudioEngine = () => {
     filter.Q.value = 0.5; // Tight and controlled
     
     // Short, tight envelope
-    gain.gain.setValueAtTime(1.2, time);
+    gain.gain.setValueAtTime(1.0, time); // Reduced from 1.2 to prevent clipping
     gain.gain.exponentialRampToValueAtTime(0.01, time + 0.12);
     
     noiseOsc.connect(noiseGain);
@@ -425,7 +425,7 @@ export const createAudioEngine = () => {
     noiseFilter.frequency.value = 1200;
     
     const noiseGain = audioContext.createGain();
-    noiseGain.gain.setValueAtTime(0.6, time);
+    noiseGain.gain.setValueAtTime(0.5, time); // Reduced from 0.6 to prevent clipping
     noiseGain.gain.exponentialRampToValueAtTime(0.01, time + 0.12);
     
     // Higher pitch for tightness
@@ -469,7 +469,7 @@ export const createAudioEngine = () => {
     noiseFilter.frequency.value = 1800;
     
     const noiseGain = audioContext.createGain();
-    noiseGain.gain.setValueAtTime(0.65, time);
+    noiseGain.gain.setValueAtTime(0.55, time); // Reduced from 0.65 to prevent clipping
     noiseGain.gain.exponentialRampToValueAtTime(0.01, time + 0.18);
     
     // Sharp click
@@ -1293,101 +1293,72 @@ export const createAudioEngine = () => {
     noise.stop(time + 3.5);
   };
 
-  // Horn - Bright, brassy horn sound with characteristic attack
-  const playHorn = (time: number) => {
-    const duration = 1.2; // 1.2 second horn blast
+  // Pulse - Soft, breath-like noise pulse with gentle filter sweep
+  const playPulse = (time: number) => {
+    const duration = 0.55; // ~550ms duration (middle of 400-700ms range)
     
-    // Create multiple oscillators for rich, brassy tone
-    const osc1 = audioContext.createOscillator();
-    const osc2 = audioContext.createOscillator();
-    const osc3 = audioContext.createOscillator();
-    const osc4 = audioContext.createOscillator();
+    // Create filtered noise for breath-like texture
+    const bufferSize = audioContext.sampleRate * duration;
+    const buffer = audioContext.createBuffer(2, bufferSize, audioContext.sampleRate);
     
-    // Fundamental frequency (around Bb3 for horn-like sound)
-    const fundamental = 233.08; // Bb3
+    // Generate pink noise (approximated by filtering white noise)
+    for (let channel = 0; channel < 2; channel++) {
+      const data = buffer.getChannelData(channel);
+      for (let i = 0; i < bufferSize; i++) {
+        // Layered noise for breath-like texture
+        const noise1 = Math.random() * 2 - 1;
+        const noise2 = Math.random() * 2 - 1;
+        // Slight low-pass filtering approximation for pink noise character
+        data[i] = (noise1 * 0.6 + noise2 * 0.4) * 0.7;
+      }
+    }
     
-    // Harmonic series for brassy character
-    osc1.type = 'sawtooth';
-    osc1.frequency.value = fundamental;
+    const noise = audioContext.createBufferSource();
+    noise.buffer = buffer;
     
-    osc2.type = 'sawtooth';
-    osc2.frequency.value = fundamental * 2; // Octave
-    
-    osc3.type = 'sawtooth';
-    osc3.frequency.value = fundamental * 3; // Fifth above octave
-    
-    osc4.type = 'sawtooth';
-    osc4.frequency.value = fundamental * 4; // Two octaves
-    
-    // Individual gains for harmonic balance
-    const osc1Gain = audioContext.createGain();
-    const osc2Gain = audioContext.createGain();
-    const osc3Gain = audioContext.createGain();
-    const osc4Gain = audioContext.createGain();
-    
-    osc1Gain.gain.value = 0.4; // Strong fundamental
-    osc2Gain.gain.value = 0.3; // Strong octave
-    osc3Gain.gain.value = 0.2; // Moderate fifth
-    osc4Gain.gain.value = 0.15; // Subtle two octaves
-    
-    // Bright bandpass filter for horn character
-    const bandpass = audioContext.createBiquadFilter();
-    bandpass.type = 'bandpass';
-    bandpass.frequency.setValueAtTime(800, time); // Start mid-range
-    bandpass.frequency.exponentialRampToValueAtTime(1200, time + 0.1); // Brighten quickly
-    bandpass.frequency.exponentialRampToValueAtTime(600, time + duration); // Darken over time
-    bandpass.Q.value = 2.5; // Resonant for brassy character
-    
-    // Highpass to remove mud
+    // Highpass to remove low rumble
     const highpass = audioContext.createBiquadFilter();
     highpass.type = 'highpass';
     highpass.frequency.value = 200;
     highpass.Q.value = 0.5;
     
-    // Lowpass to smooth harshness
+    // Bandpass filter with slow downward sweep
+    const bandpass = audioContext.createBiquadFilter();
+    bandpass.type = 'bandpass';
+    bandpass.frequency.setValueAtTime(3000, time); // Start high
+    bandpass.frequency.exponentialRampToValueAtTime(800, time + duration); // Slow downward sweep
+    bandpass.Q.value = 1.2; // Moderate resonance for character, no ringing
+    
+    // Lowpass for smoothness and to prevent harshness
     const lowpass = audioContext.createBiquadFilter();
     lowpass.type = 'lowpass';
-    lowpass.frequency.setValueAtTime(5000, time);
-    lowpass.frequency.exponentialRampToValueAtTime(3000, time + duration);
-    lowpass.Q.value = 1;
+    lowpass.frequency.setValueAtTime(8000, time);
+    lowpass.frequency.exponentialRampToValueAtTime(4000, time + duration);
+    lowpass.Q.value = 0.7;
     
-    const mainGain = audioContext.createGain();
+    const gain = audioContext.createGain();
     
-    // Horn envelope: quick attack, sustain, then decay
-    mainGain.gain.setValueAtTime(0, time);
-    mainGain.gain.linearRampToValueAtTime(0.5, time + 0.05); // Quick attack (50ms)
-    mainGain.gain.setValueAtTime(0.5, time + 0.3); // Sustain
-    mainGain.gain.exponentialRampToValueAtTime(0.3, time + 0.6); // Gradual decay
-    mainGain.gain.exponentialRampToValueAtTime(0.01, time + duration); // Fade out
+    // Short attack, medium decay envelope
+    gain.gain.setValueAtTime(0, time);
+    gain.gain.linearRampToValueAtTime(0.25, time + 0.02); // Short attack (20ms)
+    gain.gain.exponentialRampToValueAtTime(0.01, time + duration); // Medium decay
     
-    // Connect oscillators
-    osc1.connect(osc1Gain);
-    osc2.connect(osc2Gain);
-    osc3.connect(osc3Gain);
-    osc4.connect(osc4Gain);
+    noise.connect(highpass);
+    highpass.connect(bandpass);
+    bandpass.connect(lowpass);
+    lowpass.connect(gain);
+    gain.connect(dryGain);
+    gain.connect(reverbGain);
+    gain.connect(delayMix);
     
-    osc1Gain.connect(bandpass);
-    osc2Gain.connect(bandpass);
-    osc3Gain.connect(bandpass);
-    osc4Gain.connect(bandpass);
+    // Light reverb for pulse
+    const pulseReverbGain = audioContext.createGain();
+    pulseReverbGain.gain.value = 0.6; // Light reverb (less than crash/riser)
+    gain.connect(pulseReverbGain);
+    pulseReverbGain.connect(reverbGain);
     
-    bandpass.connect(highpass);
-    highpass.connect(lowpass);
-    lowpass.connect(mainGain);
-    
-    mainGain.connect(dryGain);
-    mainGain.connect(reverbGain);
-    mainGain.connect(delayMix);
-    
-    // Start all oscillators
-    osc1.start(time);
-    osc1.stop(time + duration);
-    osc2.start(time);
-    osc2.stop(time + duration);
-    osc3.start(time);
-    osc3.stop(time + duration);
-    osc4.start(time);
-    osc4.stop(time + duration);
+    noise.start(time);
+    noise.stop(time + duration);
   };
 
   // Riser - Long atmospheric riser with white noise build and descent
@@ -2247,8 +2218,8 @@ export const createAudioEngine = () => {
       case 'riser':
         playRiser(time);
         break;
-      case 'horn':
-        playHorn(time);
+      case 'pulse':
+        playPulse(time);
         break;
       case 'bass':
         playBass(time);
@@ -2275,12 +2246,15 @@ export const createAudioEngine = () => {
   };
 
   const setVolume = (value: number) => {
-    masterGain.gain.value = value * 0.7;
+    // Reduced from 0.7 to 0.4 to prevent clipping when multiple tracks play simultaneously
+    masterGain.gain.value = value * 0.4;
   };
 
   const setReverb = (value: number) => {
     reverbGain.gain.value = value * 0.5;
-    dryGain.gain.value = 1 - (value * 0.3);
+    // Apply reverb mix while preserving base dryGain attenuation (0.85)
+    const baseDryGain = 0.85;
+    dryGain.gain.value = baseDryGain * (1 - (value * 0.3));
   };
 
   const getCurrentTime = () => audioContext.currentTime;
@@ -2457,6 +2431,7 @@ export const createAudioEngine = () => {
   };
 
   const getAnalyser = () => analyser;
+  const getMasterGain = () => masterGain;
 
   return {
     playSound,
@@ -2470,5 +2445,6 @@ export const createAudioEngine = () => {
     playNotePreview,
     playNoteWithVariant,
     getAnalyser,
+    getMasterGain,
   };
 };

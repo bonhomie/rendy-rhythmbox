@@ -17,6 +17,7 @@ import { parseHash, setHash } from './utils/urlHash';
 import { loadTrack } from './utils/api';
 import type { AppState } from './utils/saveLoad';
 import { deserializeState, normalizeAndValidateState } from './utils/saveLoad';
+import woodTrimImage from './assets/wood-trim-crop.png';
 
 export type TrackData = {
   id: number;
@@ -244,7 +245,7 @@ export default function App() {
   const tracksRef = useRef(tracks);
   const crashOnNextStepRef = useRef(false); // Use ref instead of state to avoid closure issues
   const riserOnNextStepRef = useRef(false); // Track riser trigger
-  const hornOnNextStepRef = useRef(false); // Track horn trigger
+  const pulseOnNextStepRef = useRef(false); // Track pulse trigger
   const queuedPhraseRef = useRef<number | null>(null); // Track queued phrase
   const tempoRef = useRef(tempo); // Track tempo for arpeggiator
   const phrasesRef = useRef(phrases); // Track phrases for phrase switching
@@ -295,7 +296,22 @@ export default function App() {
     setDelay(normalizedState.delay);
     setDelayAmount(normalizedState.delayAmount);
     setFilter(normalizedState.filter);
-    setVolume(normalizedState.volume);
+    
+    // Log loaded volume and apply with safe clamping
+    const loadedVolume = normalizedState.volume;
+    console.log('[handleLoad] Loaded volume:', loadedVolume, 'UI units (0-80)');
+    setVolume(loadedVolume);
+    
+    // Log actual AudioContext gain node value after volume is applied
+    // Use setTimeout to ensure volume useEffect has run
+    setTimeout(() => {
+      if (audioEngineRef.current?.getMasterGain) {
+        const masterGainNode = audioEngineRef.current.getMasterGain();
+        const actualGainValue = masterGainNode.gain.value;
+        console.log('[handleLoad] Actual masterGain.gain.value:', actualGainValue, '(should be', loadedVolume / 100 * 0.4, ')');
+      }
+    }, 0);
+    
     setActivePhrase(normalizedState.activePhrase);
     
     // Set tracks to the active phrase's tracks (deep cloned)
@@ -610,10 +626,10 @@ export default function App() {
           riserOnNextStepRef.current = false; // Reset after playing
         }
         
-        // Check if horn should play on this step
-        if (hornOnNextStepRef.current) {
-          audioEngineRef.current.playSound('horn', now);
-          hornOnNextStepRef.current = false; // Reset after playing
+        // Check if pulse should play on this step
+        if (pulseOnNextStepRef.current) {
+          audioEngineRef.current.playSound('pulse', now);
+          pulseOnNextStepRef.current = false; // Reset after playing
         }
         
         tracksRef.current.forEach((track) => {
@@ -842,7 +858,27 @@ export default function App() {
         if (soundName === 'hi-hat open') soundName = 'hi-hat2';
         
         if (track.name !== 'BASS' && track.name !== 'KEYS') {
-          audioEngineRef.current.playSound(soundName, audioEngineRef.current.getCurrentTime());
+          // Map variant for all drum tracks
+          let soundToPlay = soundName;
+          if (track.soundVariant) {
+            // Capitalize first letter of variant
+            const variantCapitalized = track.soundVariant.charAt(0).toUpperCase() + track.soundVariant.slice(1);
+            
+            if (track.name === 'Kick') {
+              soundToPlay = 'kick' + variantCapitalized;
+            } else if (track.name === 'Snare') {
+              soundToPlay = 'snare' + variantCapitalized;
+            } else if (track.name === 'HI-HATS') {
+              soundToPlay = 'hi-hat1' + variantCapitalized;
+            } else if (track.name === 'HI-HAT OPEN') {
+              soundToPlay = 'hi-hat2' + variantCapitalized;
+            } else if (track.name === 'CLAP') {
+              soundToPlay = 'clap' + variantCapitalized;
+            } else if (track.name === 'PERC') {
+              soundToPlay = 'perc' + variantCapitalized;
+            }
+          }
+          audioEngineRef.current.playSound(soundToPlay, audioEngineRef.current.getCurrentTime());
         }
       }
     }
@@ -939,8 +975,8 @@ export default function App() {
       const track = tracks.find(t => t.id === selectedTrackId);
       if (track) {
         const frequency = getFrequency(note, octave);
-        // Use variant-based playback for synth track
-        if (track.name === 'KEYS' && track.soundVariant && audioEngineRef.current.playNoteWithVariant) {
+        // Use variant-based playback for BASS and KEYS tracks if a variant is selected
+        if ((track.name === 'BASS' || track.name === 'KEYS') && track.soundVariant && audioEngineRef.current.playNoteWithVariant) {
           audioEngineRef.current.playNoteWithVariant(
             track.name.toLowerCase(),
             track.soundVariant,
@@ -1053,14 +1089,14 @@ export default function App() {
     }
   };
 
-  const handleHornClick = () => {
-    // Set the horn to trigger on the next step during playback
-    hornOnNextStepRef.current = true;
+  const handlePulseClick = () => {
+    // Set the pulse to trigger on the next step during playback
+    pulseOnNextStepRef.current = true;
     
-    // If not currently playing, play the horn immediately
+    // If not currently playing, play the pulse immediately
     if (!isPlaying && audioEngineRef.current) {
       audioEngineRef.current.resumeContext();
-      audioEngineRef.current.playSound('horn', audioEngineRef.current.getCurrentTime());
+      audioEngineRef.current.playSound('pulse', audioEngineRef.current.getCurrentTime());
     }
   };
 
@@ -1307,83 +1343,180 @@ export default function App() {
       onClick={handleBackgroundClick}
     >
       <div className="flex flex-col min-h-screen" onClick={(e) => e.stopPropagation()}>
-        <Header />
+        {/* Wood trim banner */}
+        <div 
+          className="w-full"
+          style={{
+            height: '24px',
+            backgroundImage: `url(${woodTrimImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'top center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+        <Header isPlaying={isPlaying} tempo={tempo} />
+        {/* Border line underneath header */}
+        <div 
+          style={{
+            width: 'calc(100% - 64px)',
+            marginLeft: '32px',
+            marginRight: '32px',
+            height: '0.5px',
+            backgroundColor: 'rgba(255, 255, 255, 0.20)',
+          }}
+        />
         
-        <div className="flex-1 flex items-center justify-center px-8 py-8">
-          <div className="w-full max-w-[1400px]">
-            {/* Controls and LED above sequencer - aligned with sequencer structure */}
-            <div className="flex items-start gap-3 mb-6 pb-8">
-              {/* Spacer to match track info width */}
-              <div className="w-[200px] shrink-0" />
-              
-              {/* Content area matching steps section - flex container like the steps */}
-              <div className="flex gap-[7px] shrink-0" style={{ width: '1001px' }}>
-                {/* Control Buttons - flush left with first step */}
-                <div className="shrink-0">
-                  <ControlButtons 
-                    isPlaying={isPlaying}
-                    onTogglePlay={handleTogglePlay}
-                    onClear={handleClear}
-                    onRandom={handleRandom}
-                    onSave={handleSave}
-                    onLoad={handleLoad}
-                    currentState={getCurrentStateForSave()}
-                  />
-                </div>
+        <div className="flex-1 flex items-center justify-center px-8 py-8 large-screen:pt-[48px] large-screen:items-start">
+          <div className="w-full max-w-[1400px] large-screen:max-w-[1600px] large-screen:flex large-screen:gap-[64px] large-screen:items-start">
+            {/* Main sequencer area - always visible */}
+            <div className="w-full large-screen:w-auto large-screen:flex-1">
+              {/* Controls and LED above sequencer - for screens <= 1600px */}
+              <div className="flex items-start gap-3 mb-6 pb-8 large-screen:hidden">
+                {/* Spacer to match track info width */}
+                <div className="w-[200px] shrink-0" />
                 
-                {/* Spacer to push LED right and ensure minimum 32px gap */}
-                <div style={{ flex: '1 1 32px', minWidth: '32px' }} />
-                
-                {/* LED Interface - flush right with last step */}
-                <div className="shrink-0">
-                  <LEDInterface 
-                    volume={volume}
-                    tempo={tempo}
-                    swing={swing}
-                    onVolumeChange={setVolume}
-                    onTempoChange={setTempo}
-                    onSwingChange={setSwing}
-                    frequencyData={frequencyData}
-                  />
+                {/* Content area matching steps section - flex container like the steps */}
+                <div className="flex gap-[7px] shrink-0" style={{ width: '1001px' }}>
+                  {/* Control Buttons - flush left with first step */}
+                  <div className="shrink-0">
+                    <ControlButtons 
+                      isPlaying={isPlaying}
+                      onTogglePlay={handleTogglePlay}
+                      onClear={handleClear}
+                      onRandom={handleRandom}
+                      onSave={handleSave}
+                      onLoad={handleLoad}
+                      currentState={getCurrentStateForSave()}
+                    />
+                  </div>
+                  
+                  {/* Spacer to push LED right and ensure minimum 32px gap */}
+                  <div style={{ flex: '1 1 32px', minWidth: '32px' }} />
+                  
+                  {/* LED Interface - flush right with last step */}
+                  <div className="shrink-0" style={{ minWidth: '340px' }}>
+                    <LEDInterface 
+                      volume={volume}
+                      tempo={tempo}
+                      swing={swing}
+                      onVolumeChange={setVolume}
+                      onTempoChange={setTempo}
+                      onSwingChange={setSwing}
+                      frequencyData={frequencyData}
+                    />
+                  </div>
                 </div>
               </div>
+
+              <SequencerGrid 
+                tracks={tracks}
+                currentStep={currentStep}
+                onToggleStep={toggleStep}
+                onToggleMute={toggleMute}
+                onOpenPianoModal={handleOpenPianoModal}
+                onSelectSound={handleSelectSound}
+                onArpPatternChange={handleArpPatternChange}
+                onArpRateChange={handleArpRateChange}
+                onArpLengthChange={handleArpLengthChange}
+                recordingTrackId={recordingTrackId}
+                onEnterRecordMode={handleEnterRecordMode}
+                onExitRecordMode={handleExitRecordMode}
+                onClearNotes={handleClearNotes}
+                onDragStart={handleDragStart}
+                onDuplicateStart={handleDuplicateStart}
+                onDragDrop={handleDragDrop}
+                onDragCancel={handleDragCancel}
+                isDragging={isDragging}
+                draggedNote={draggedNote}
+              />
             </div>
 
-            <SequencerGrid 
-              tracks={tracks}
-              currentStep={currentStep}
-              onToggleStep={toggleStep}
-              onToggleMute={toggleMute}
-              onOpenPianoModal={handleOpenPianoModal}
-              onSelectSound={handleSelectSound}
-              onArpPatternChange={handleArpPatternChange}
-              onArpRateChange={handleArpRateChange}
-              onArpLengthChange={handleArpLengthChange}
-              recordingTrackId={recordingTrackId}
-              onEnterRecordMode={handleEnterRecordMode}
-              onExitRecordMode={handleExitRecordMode}
-              onClearNotes={handleClearNotes}
-              onDragStart={handleDragStart}
-              onDuplicateStart={handleDuplicateStart}
-              onDragDrop={handleDragDrop}
-              onDragCancel={handleDragCancel}
-              isDragging={isDragging}
-              draggedNote={draggedNote}
-            />
+            {/* Right sidebar - for screens >= 1601px */}
+            <div className="hidden large-screen:flex large-screen:flex-col large-screen:gap-8 large-screen:w-[360px] large-screen:shrink-0">
+              {/* LED Interface */}
+              <LEDInterface 
+                volume={volume}
+                tempo={tempo}
+                swing={swing}
+                onVolumeChange={setVolume}
+                onTempoChange={setTempo}
+                onSwingChange={setSwing}
+                frequencyData={frequencyData}
+              />
+
+              {/* Control Buttons */}
+              <div className="large-screen:h-auto">
+                <ControlButtons 
+                  isPlaying={isPlaying}
+                  onTogglePlay={handleTogglePlay}
+                  onClear={handleClear}
+                  onRandom={handleRandom}
+                  onSave={handleSave}
+                  onLoad={handleLoad}
+                  currentState={getCurrentStateForSave()}
+                  buttonHeight="32px"
+                />
+              </div>
+
+              {/* Phrase Section */}
+              <div className="flex flex-col gap-[8px] items-start">
+                <div className="font-['PP Neue Montreal Mono',sans-serif] font-medium text-[12px] text-[rgba(255,255,255,0.66)] tracking-[0.24px] uppercase leading-[1.25]">
+                  PHRASE
+                </div>
+                <Phrases 
+                  activePhrase={activePhrase}
+                  queuedPhrase={queuedPhrase}
+                  onPhraseClick={handlePhraseClick}
+                  duplicateSourcePhrase={duplicateSourcePhrase}
+                  isDraggingPhrase={isDraggingPhrase}
+                />
+              </div>
+
+              {/* Filter and SFX Section */}
+              <div className="flex gap-[32px] items-start">
+                <Knob 
+                  value={filter}
+                  onChange={setFilter}
+                  label="FILTER"
+                />
+                
+                <div className="flex-1 flex flex-col gap-[8px]">
+                  <div className="font-['PP Neue Montreal Mono',sans-serif] font-medium text-[12px] text-[rgba(255,255,255,0.66)] tracking-[0.24px] uppercase leading-[1.25]">
+                    SFX
+                  </div>
+                       <SFXButtons onCrashClick={handleCrashClick} onRiserClick={handleRiserClick} onPulseClick={handlePulseClick} />
+                </div>
+              </div>
+
+              {/* Effects Sliders */}
+              <ParameterSliders 
+                tempo={tempo}
+                swing={swing}
+                reverb={reverb}
+                delay={delay}
+                delayAmount={delayAmount}
+                onTempoChange={setTempo}
+                onSwingChange={setSwing}
+                onReverbChange={setReverb}
+                onDelayChange={setDelay}
+                onDelayAmountChange={setDelayAmount}
+              />
+            </div>
           </div>
         </div>
 
-        <div className="pb-8 px-8">
+        {/* Bottom Control Panel - for screens <= 1600px */}
+        <div className="pb-8 px-8 large-screen:hidden">
           <div className="max-w-[1400px] mx-auto">
             {/* Bottom Control Panel - aligned with sequencer structure */}
-            <div className="flex items-start gap-3 relative h-[159px]">
+            <div className="flex items-start gap-3 relative h-[159px]" style={{ overflow: 'visible' }}>
               {/* Spacer to match track info width */}
               <div className="w-[200px] shrink-0" />
               
               {/* Content area matching steps width exactly: 16 steps (56px each) + 15 gaps (7px each) = 1001px */}
-              <div className="w-[1001px] shrink-0 relative h-full">
+              <div className="w-[1001px] shrink-0 relative h-full" style={{ overflow: 'visible' }}>
               {/* Left Section: Phrase and Filter/SFX */}
-              <div className="absolute left-0 top-0 w-[560px]">
+              <div className="absolute left-0 top-0 w-[560px]" style={{ overflow: 'visible' }}>
                 {/* Phrase Section */}
                 <div className="flex flex-col gap-[8px] items-start mb-[27px]">
                   <div className="font-['PP Neue Montreal Mono',sans-serif] font-medium text-[12px] text-[rgba(255,255,255,0.66)] tracking-[0.24px] uppercase leading-[1.25]">
@@ -1399,7 +1532,7 @@ export default function App() {
                 </div>
                 
                 {/* Filter and SFX Section */}
-                <div className="flex gap-[32px] items-start">
+                <div className="flex gap-[32px] items-start" style={{ overflow: 'visible' }}>
                   <Knob 
                     value={filter}
                     onChange={setFilter}
@@ -1410,7 +1543,7 @@ export default function App() {
                     <div className="font-['PP Neue Montreal Mono',sans-serif] font-medium text-[12px] text-[rgba(255,255,255,0.66)] tracking-[0.24px] uppercase leading-[1.25]">
                       SFX
                     </div>
-                    <SFXButtons onCrashClick={handleCrashClick} onRiserClick={handleRiserClick} onHornClick={handleHornClick} />
+                       <SFXButtons onCrashClick={handleCrashClick} onRiserClick={handleRiserClick} onPulseClick={handlePulseClick} />
                   </div>
                 </div>
               </div>
