@@ -3,6 +3,7 @@ import svgPaths from "../imports/svg-d0xiv0f7ge";
 import { SaveModal } from './SaveModal';
 import { LoadDropdown } from './LoadDropdown';
 import type { AppState } from '../utils/saveLoad';
+import iconPause from '../assets/icon-pause.svg';
 
 const DEBUG = false;
 
@@ -83,9 +84,15 @@ export function ControlButtons({ isPlaying, onTogglePlay, onRandom, onClear, onS
         className="content-stretch flex gap-[8px] h-full items-center justify-center pl-[12px] pr-[16px] py-[7px] relative rounded-[6px] shadow-[0px_1px_12px_0px_rgba(255,255,255,0.4)] shrink-0 hover:scale-[1.02] active:scale-[0.98] transition-transform cursor-pointer"
         style={{ backgroundImage: `url('data:image/svg+xml;utf8,<svg viewBox=\\'${playButtonViewBox}\\' xmlns=\\'http://www.w3.org/2000/svg\\' preserveAspectRatio=\\'none\\'><rect x=\\'0\\' y=\\'0\\' height=\\'100%\\' width=\\'100%\\' fill=\\'url(%23grad)\\' opacity=\\'1\\'/><defs><radialGradient id=\\'grad\\' gradientUnits=\\'userSpaceOnUse\\' cx=\\'0\\' cy=\\'0\\' r=\\'10\\' gradientTransform=\\'matrix(-3.45e-7 4.725 -13.332 -0.0000024747 71.5 24)\\'><stop stop-color=\\'rgba(255,255,255,1)\\' offset=\\'0.32202\\'/><stop stop-color=\\'rgba(251,255,212,1)\\' offset=\\'0.66101\\'/><stop stop-color=\\'rgba(247,254,169,1)\\' offset=\\'1\\'/></radialGradient></defs></svg>')` }}
       >
-        <svg className="block shrink-0 size-[18px]" fill="none" preserveAspectRatio="none" viewBox="0 0 18 18">
-          <path d={svgPaths.p3d950580} fill="#0D0D0D" />
-        </svg>
+        {isPlaying ? (
+          <svg className="block shrink-0 size-[18px]" fill="none" preserveAspectRatio="none" viewBox="0 0 18 18">
+            <path d="M7.5 15H3.75V3H7.5V15ZM14.25 15H10.5V3H14.25V15Z" fill="#0D0D0D" />
+          </svg>
+        ) : (
+          <svg className="block shrink-0 size-[18px]" fill="none" preserveAspectRatio="none" viewBox="0 0 18 18">
+            <path d={svgPaths.p3d950580} fill="#0D0D0D" />
+          </svg>
+        )}
         <div className="flex flex-col font-['PP Neue Montreal Mono',sans-serif] font-medium justify-end leading-[0] not-italic relative shrink-0 text-[#0d0d0d] text-[12px] text-nowrap tracking-[0.24px] uppercase">
           <p className="leading-[1.25]">
             {isPlaying ? 'STOP' : 'PLAY'}<span className="text-[rgba(13,13,13,0.5)]">{` [Space]`}</span>

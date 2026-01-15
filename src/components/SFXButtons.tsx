@@ -1,4 +1,6 @@
-import svgPaths from "../imports/svg-xxz527id14";
+import iconCrash from '../assets/icon-crash.svg';
+import iconRiser from '../assets/icon-riser.svg';
+import iconSfx from '../assets/icon-sfx.svg';
 
 interface SFXButtonsProps {
   onCrashClick: () => void;
@@ -27,9 +29,7 @@ export function SFXButtons({ onCrashClick, onRiserClick, onPulseClick }: SFXButt
         <div aria-hidden="true" className="absolute border border-[rgba(255,255,255,0.2)] border-solid inset-0 pointer-events-none rounded-[6px]" />
         <div className="flex flex-row items-center justify-center size-full">
           <div className="content-stretch flex gap-[8px] items-center justify-center pl-[12px] pr-[16px] py-[7px] relative w-full">
-            <svg className="block shrink-0 size-[18px]" fill="none" preserveAspectRatio="none" viewBox="0 0 18 18">
-              <path d={svgPaths.p14c86d80} fill="white" />
-            </svg>
+            <img src={iconCrash} alt="Crash" className="block shrink-0 size-[18px]" />
             <div className="flex flex-col font-['PP Neue Montreal Mono',sans-serif] font-medium justify-end leading-[0] not-italic relative shrink-0 text-[10px] text-[rgba(255,255,255,0.66)] text-nowrap text-right tracking-[0.2px] uppercase">
               <p className="leading-[1.25]">Crash</p>
             </div>
@@ -45,9 +45,7 @@ export function SFXButtons({ onCrashClick, onRiserClick, onPulseClick }: SFXButt
         <div aria-hidden="true" className="absolute border border-[rgba(255,255,255,0.2)] border-solid inset-0 pointer-events-none rounded-[6px]" />
         <div className="flex flex-row items-center justify-center size-full">
           <div className="content-stretch flex gap-[8px] items-center justify-center pl-[12px] pr-[16px] py-[7px] relative w-full">
-            <svg className="block shrink-0 size-[18px]" fill="none" preserveAspectRatio="none" viewBox="0 0 18 18">
-              <path d={svgPaths.p38701b00} fill="white" />
-            </svg>
+            <img src={iconRiser} alt="Riser" className="block shrink-0 size-[18px]" />
             <div className="flex flex-col font-['PP Neue Montreal Mono',sans-serif] font-medium justify-end leading-[0] not-italic relative shrink-0 text-[10px] text-[rgba(255,255,255,0.66)] text-nowrap text-right tracking-[0.2px] uppercase">
               <p className="leading-[1.25]">riser</p>
             </div>
@@ -63,9 +61,7 @@ export function SFXButtons({ onCrashClick, onRiserClick, onPulseClick }: SFXButt
         <div aria-hidden="true" className="absolute border border-[rgba(255,255,255,0.2)] border-solid inset-0 pointer-events-none rounded-[6px]" />
         <div className="flex flex-row items-center justify-center size-full">
           <div className="content-stretch flex gap-[8px] items-center justify-center pl-[12px] pr-[16px] py-[7px] relative w-full">
-            <svg className="block shrink-0 size-[18px]" fill="none" preserveAspectRatio="none" viewBox="0 0 18 18">
-              <path d={svgPaths.p17e22780} fill="white" />
-            </svg>
+            <img src={iconSfx} alt="Pulse" className="block shrink-0 size-[18px]" />
             <div className="flex flex-col font-['PP Neue Montreal Mono',sans-serif] font-medium justify-end leading-[0] not-italic relative shrink-0 text-[10px] text-[rgba(255,255,255,0.66)] text-nowrap text-right tracking-[0.2px] uppercase">
               <p className="leading-[1.25]">Pulse</p>
             </div>
